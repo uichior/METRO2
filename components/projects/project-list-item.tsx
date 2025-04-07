@@ -3,6 +3,7 @@
 import { CalendarDays, Users } from "lucide-react"
 import { ManagementListItem, SelectionProps } from "../templates/management-list-item"
 import { Project } from "./types"
+import { Checkbox } from "@/components/ui/checkbox"
 
 interface ProjectListItemProps {
   project: Project
@@ -55,20 +56,7 @@ export function ProjectListItem({ project, isSelected, onSelect, selectionProps 
       ]}
       rightContent={
         <div className="flex items-center gap-4 text-xs">
-          {project.unitPrice !== undefined && (
-            <div className="flex items-center gap-1 whitespace-nowrap">
-              <span className="text-muted-foreground">単価:</span>
-              <span className="font-medium">{formatCurrency(project.unitPrice)}</span>
-            </div>
-          )}
-          {project.quantity !== undefined && (
-            <div className="flex items-center gap-1 whitespace-nowrap">
-              <span className="text-muted-foreground">数量:</span>
-              <span className="font-medium">{project.quantity}</span>
-            </div>
-          )}
           <div className="flex items-center gap-1 whitespace-nowrap">
-            <span className="text-muted-foreground">金額:</span>
             <span className="font-medium">{formatCurrency(amount)}</span>
           </div>
         </div>
