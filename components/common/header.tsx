@@ -1,131 +1,181 @@
 "use client"
 
-import { Download, Menu, Plus } from "lucide-react"
+import { ReactNode } from "react"
+import { Menu, Search, HelpCircle, ChevronLeft, ChevronRight } from "lucide-react"
+import { useSidebar } from "@/components/ui/sidebar"
+import { usePathname } from "next/navigation"
+import { getPageItemFromPath } from "@/lib/page-mapping"
 import { Button } from "@/components/ui/button"
 import { ComponentLabel } from "./component-label"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { SimpleSearch } from "./simple-search"
 import { UserProfile } from "./user-profile"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
-export interface FilterOption {
-  value: string
-  label: string
-}
-
-export interface FilterConfig {
-  id: string
-  label: string
-  options: FilterOption[]
-  defaultValue?: string
+interface User {
+  name: string
+  email: string
+  role: string
+  avatarUrl?: string
 }
 
 interface HeaderProps {
-  onMenuToggle?: () => void
-  onCustomerTypeChange?: (type: string) => void
-  customerType?: string
-  onAddNew?: () => void
-  onExportCsv?: () => void
-  onSearch?: (query: string) => void
-  searchValue?: string
-  searchPlaceholder?: string
-  showUndeliveredOnly?: {
-    checked: boolean
-    onChange: (checked: boolean) => void
-  }
-  incompleteOnly?: {
-    checked: boolean
-    onChange: (checked: boolean) => void
-  }
+  // 基本設定
   title?: string
-  user?: {
-    name: string
-    email: string
-    role: string
-    avatarUrl?: string
-  }
-  filters?: FilterConfig[]
-  onFilterChange?: (filterId: string, value: string) => void
+  onMenuToggle?: () => void
+  user?: User
+  
+  // 検索機能
+  showSearch?: boolean
+  onSearch?: (query: string) => void
+  searchPlaceholder?: string
+  
+  // 通知機能
+  showNotifications?: boolean
+  notificationCount?: number
+  onNotificationClick?: () => void
+  
+  // ヘルプ機能
+  showHelp?: boolean
+  onHelpClick?: () => void
+  
+  // カスタムコンテンツ
+  leftContent?: ReactNode
+  centerContent?: ReactNode
+  rightContent?: ReactNode
+  
+  // スタイル
+  className?: string
+  variant?: "default" | "transparent" | "dark"
 }
 
-export function Header({ onMenuToggle, onCustomerTypeChange, customerType = "all", onAddNew, onExportCsv, onSearch, searchValue = "", searchPlaceholder = "検索...", showUndeliveredOnly, incompleteOnly, title, user, filters = [], onFilterChange }: HeaderProps) {
+const defaultUser: User = {
+  name: "山田太郎",
+  email: "taro.yamada@metro.example.com",
+  role: "管理者",
+  avatarUrl: ""
+}
+
+export function Header({
+  // 基本設定
+  title,
+  onMenuToggle: externalMenuToggle,
+  user = defaultUser,
+  
+  // 検索機能
+  showSearch = true,
+  onSearch,
+  searchPlaceholder = "検索...",
+  
+  // 通知機能
+  showNotifications = false,
+  notificationCount = 0,
+  onNotificationClick,
+  
+  // ヘルプ機能
+  showHelp = false,
+  onHelpClick,
+  
+  // カスタムコンテンツ
+  leftContent,
+  centerContent,
+  rightContent,
+  
+  // スタイル設定
+  className,
+  variant = "default"
+}: HeaderProps) {
+  // Reactフックは常に同じ順序で呼び出す必要がある
+  const { state: sidebarState, toggleSidebar } = useSidebar()
+  const pathname = usePathname()
+  
+  // 現在のパスに対応するページ情報を取得
+  const pageItem = getPageItemFromPath(pathname)
+  
+  // 外部からのメニュートグルとサイドバートグルを統合
+  const onMenuToggle = externalMenuToggle || toggleSidebar
+  
+  // バリアントに基づいたスタイルを設定
+  const headerStyles = {
+    default: "bg-white border-b",
+    transparent: "bg-transparent",
+    dark: "bg-gray-900 text-white border-gray-800"
+  }
+  
   return (
-    <header className="h-14 bg-white border-b px-4 flex items-center justify-between shrink-0 relative pt-0 pb-0">
+    <header className={cn(
+      "h-16 px-4 flex items-center justify-between shrink-0 relative",
+      headerStyles[variant],
+      className
+    )}>
       <ComponentLabel name="Header" />
-      <div className="flex items-center gap-4 flex-1">
-        {title && (
-          <h1 className="text-xl font-semibold hidden md:block">{title}</h1>
+      
+      {/* 左側コンテンツ */}
+      <div className="flex items-center gap-4">
+        {/* サイドバー開閉ボタン */}
+        {onMenuToggle && (
+          <Button variant="ghost" size="icon" onClick={onMenuToggle}>
+            {sidebarState === "expanded" ? (
+              <ChevronLeft className="h-5 w-5" />
+            ) : (
+              <ChevronRight className="h-5 w-5" />
+            )}
+          </Button>
         )}
-        {/* モバイルメニュートグル */}
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={onMenuToggle}>
-          <Menu className="h-5 w-5" />
-        </Button>
-
-        {/* 検索バーとフィルター */}
-        <div className="hidden md:flex items-center gap-4">
-          {/* フィルター */}
+        
+        {/* ヘッダータイトル */}
+        {title && (
           <div className="flex items-center gap-2">
-            {filters.map((filter) => (
-              <Select 
-                key={filter.id} 
-                defaultValue={filter.defaultValue || filter.options[0]?.value} 
-                onValueChange={(value) => onFilterChange?.(filter.id, value)}
-              >
-                <SelectTrigger className="w-[100px] h-9 text-sm bg-background">
-                  <SelectValue placeholder={filter.label} />
-                </SelectTrigger>
-                <SelectContent>
-                  {filter.options.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ))}
-          </div>
-          
-          {/* 検索バー */}
-          <SimpleSearch
-            onSearch={onSearch}
-            placeholder={searchPlaceholder || "検索..."}
-            incompleteOnly={incompleteOnly?.checked}
-            onIncompleteOnlyChange={incompleteOnly?.onChange}
-          />
-
-          {/* アクションボタン */}
-          <div className="flex items-center gap-2">
-            {/* 未納のみスイッチ */}
-            {showUndeliveredOnly && (
-              <div className="flex items-center gap-2 mr-2">
-                <Switch
-                  id="undelivered-only"
-                  checked={showUndeliveredOnly.checked}
-                  onCheckedChange={showUndeliveredOnly.onChange}
-                  className="data-[state=checked]:bg-primary"
-                />
-                <Label htmlFor="undelivered-only" className="text-sm font-medium cursor-pointer whitespace-nowrap">
-                  未納のみ
-                </Label>
+            {/* 現在のページに対応するアイコンを表示 */}
+            {pageItem && (
+              <div className="flex items-center justify-center h-6 w-6">
+                {pageItem.icon}
               </div>
             )}
-            
-            <Button onClick={onAddNew}>
-              <Plus className="h-4 w-4 mr-1" />
-              新規
-            </Button>
-            <Button variant="outline" onClick={onExportCsv}>
-              <Download className="h-4 w-4 mr-1" />
-              csv
-            </Button>
+            <h1 className="text-xl font-semibold">{title}</h1>
           </div>
-        </div>
+        )}
+        
+        {/* 検索ボックスを左側に移動 */}
+        {showSearch && (
+          <div className="hidden md:flex items-center ml-6">
+            <div className="relative w-64">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+              <Input
+                type="search"
+                placeholder={searchPlaceholder}
+                className="w-full pl-9 h-9 bg-gray-100 border-gray-200"
+                onChange={(e) => onSearch?.(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* カスタム左側コンテンツ */}
+        {leftContent}
       </div>
       
-      {/* ユーザープロファイル */}
-      <div className="flex items-center ml-auto">
+      {/* 中央コンテンツ */}
+      <div className="flex-1 flex justify-center">
+        
+        {/* カスタム中央コンテンツ */}
+        {centerContent}
+      </div>
+      
+      {/* 右側コンテンツ */}
+      <div className="flex items-center gap-3">
+        {/* カスタム右側コンテンツ */}
+        {rightContent}
+        
+        {/* ヘルプボタン */}
+        {showHelp && (
+          <Button variant="ghost" size="icon" onClick={onHelpClick}>
+            <HelpCircle className="h-5 w-5" />
+          </Button>
+        )}
+        
+        {/* 通知ボタンはUserProfileコンポーネントに移動 */}
+        
+        {/* ユーザープロファイル */}
         <UserProfile user={user} />
       </div>
     </header>

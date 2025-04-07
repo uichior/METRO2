@@ -2,12 +2,13 @@
 
 import { useState, type ReactNode, useMemo } from "react"
 import { ManagementLayout } from "@/components/common/management-layout"
-import { Button } from "@/components/ui/button"
+import { Header } from "@/components/common/header"
+import { FilterPanel } from "./filter-panel"
+import { ListPanel } from "./list-panel"
+import { DetailPanel } from "./detail-panel"
 import { Checkbox } from "@/components/ui/checkbox"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Plus, Download, Search } from "lucide-react"
-import { Switch } from "@/components/ui/switch"
-import { Input } from "@/components/ui/input"
+import { Plus, Download, MoreHorizontal } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 // アクションボタンの型定義
 export interface ActionButton {
@@ -35,7 +36,7 @@ export interface ManagementPageTemplateProps<T extends BaseItem> {
   
   // コンポーネント
   filterPanel?: ReactNode
-  listItemComponent: (props: { item: T; isSelected: boolean; onSelect: (item: T) => void }) => ReactNode
+  listItemComponent: (props: { item: T; isSelected: boolean; onSelect: (item: T) => void; isChecked?: boolean; onCheckChange?: (checked: boolean) => void }) => ReactNode
   detailComponent: (props: { selectedItem: T | null }) => ReactNode
   
   // アクション
@@ -122,11 +123,19 @@ export function ManagementPageTemplate<T extends BaseItem>({
   }, [items, searchTerm, showIncompleteOnly, getFilteredItems, activeFilters])
   
   // 全選択の切り替え
-  const toggleSelectAll = () => {
-    if (selectedItems.length === filteredItems.length) {
-      setSelectedItems([])
-    } else {
+  const toggleSelectAll = (checked: boolean | "indeterminate") => {
+    if (checked === true) {
       setSelectedItems(filteredItems.map((item) => item.id))
+    } else {
+      setSelectedItems([])
+    }
+    
+    // 親コンポーネントに通知
+    if (externalOnSelectionChange) {
+      const newSelectedItems = checked === true 
+        ? filteredItems.map((item) => item.id)
+        : []
+      externalOnSelectionChange(newSelectedItems)
     }
   }
   
@@ -163,155 +172,94 @@ export function ManagementPageTemplate<T extends BaseItem>({
   // リストパネルの幅
   const listPanelWidth = "w-[30%]"
   
+  // 合計金額の計算
+  const totalAmount = useMemo(() => {
+    if (calculateTotalAmount && filteredItems.length > 0) {
+      return calculateTotalAmount(filteredItems)
+    }
+    return undefined
+  }, [calculateTotalAmount, filteredItems])
+  
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
       {/* ヘッダー */}
-      <div className="flex-none h-14 border-b border-border bg-background">
-        <div className="flex items-center justify-between h-full px-4">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold">{title}</h1>
-          </div>
-          
-          <div className="flex items-center gap-4">
+      <Header 
+        title={title}
+        rightContent={
+          <div className="flex items-center gap-2">
             {onAddNew && (
-              <Button size="sm" className="h-8 bg-black text-white hover:bg-black/90" onClick={onAddNew}>
-                <Plus className="mr-1 h-4 w-4" />
+              <Button size="sm" onClick={onAddNew}>
+                <Plus className="h-4 w-4 mr-1" />
                 新規
               </Button>
             )}
-            
             {onExport && (
-              <Button size="sm" variant="outline" className="h-8" onClick={onExport}>
-                <Download className="mr-1 h-4 w-4" />
+              <Button variant="outline" size="sm" onClick={onExport}>
+                <Download className="h-4 w-4 mr-1" />
                 CSV
               </Button>
             )}
           </div>
-        </div>
-      </div>
+        }
+      />
       
       <div className="flex flex-1 overflow-hidden">
         {/* フィルターパネル */}
         {filterPanel && (
-          <div className="w-80 h-full border-r border-border overflow-y-auto">
-            <div className="p-4">
-              <div className="space-y-4">
-                {/* 検索ボックス */}
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    type="search"
-                    placeholder="検索..."
-                    className="pl-8 h-9"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                
-
-                
-                {/* フィルターコンテンツ */}
-                {filterPanel}
-              </div>
-            </div>
-          </div>
+          <FilterPanel
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+          >
+            {filterPanel}
+          </FilterPanel>
         )}
       
         {/* リストパネル */}
-        <div className={`${listPanelWidth} h-full border-r border-border flex flex-col`}>
-        {/* リストヘッダー */}
-        <div className="flex-none p-4 border-b border-border">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <Checkbox 
-                checked={selectedItems.length === filteredItems.length && filteredItems.length > 0}
-                onCheckedChange={toggleSelectAll}
-                aria-label="全選択"
-                className="mr-2"
-              />
-
-            </div>
-            <div className="flex items-center space-x-2">
-              {actionButtons.length > 0 && actionButtons[0] && (
-                <Button variant="ghost" size="icon" onClick={() => actionButtons[0].onClick(selectedItems)} disabled={selectedItems.length === 0} className={selectedItems.length === 0 ? "opacity-50" : ""} title="削除">
-                  {actionButtons[0].icon || <MoreHorizontal className="h-4 w-4" />}
-                </Button>
-              )}
-              {onExport && (
-                <Button variant="ghost" size="icon" onClick={onExport} title="エクスポート">
-                  <Download className="h-4 w-4" />
-                </Button>
-              )}
-              {onAddNew && (
-                <Button variant="ghost" size="icon" onClick={onAddNew} title="新規追加">
-                  <Plus className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-          
-          {/* 検索ボックスと未完了スイッチはフィルターパネルに移動しました */}
-          
-          {/* アクションボタンはヘッダーに移動しました */}
-        </div>
-        
-        {/* リスト本体 */}
-        <div className="flex-1 overflow-y-auto">
-          {filteredItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-              <p className="text-muted-foreground mb-2">該当する{itemName}がありません</p>
-              {onAddNew && (
-                <Button size="sm" onClick={onAddNew}>
-                  <Plus className="mr-1 h-4 w-4" />
-                  新規{itemName}を追加
-                </Button>
-              )}
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {filteredItems.map((item) => (
-                <div 
-                  key={item.id}
-                  className={`relative ${selectedItem?.id === item.id ? 'bg-muted/50' : 'hover:bg-muted/30'}`}
-                  onClick={() => handleSelectItem(item)}
-                >
-                  {listItemComponent({ 
-                    item, 
-                    isSelected: selectedItems.includes(item.id),
-                    onSelect: () => toggleItemSelection(item.id, !selectedItems.includes(item.id))
-                  })}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        
-        {/* リストフッター（合計金額など） */}
-        {calculateTotalAmount && (
-          <div className="flex-none p-4 border-t border-border">
-            <div className="flex justify-between items-center">
-              <span className="text-sm font-medium">合計金額</span>
-              <span className="text-lg font-semibold">{formatCurrency(calculateTotalAmount(filteredItems))}</span>
-            </div>
-          </div>
-        )}
-      </div>
-      
-        {/* 詳細パネル */}
-        <div className="flex-1 h-full overflow-auto">
-          <div className="p-6">
-            {selectedItem ? (
-              <div>
-                {detailComponent({ selectedItem })}
+        <ListPanel
+          width={listPanelWidth}
+          items={filteredItems}
+          selectedItems={selectedItems}
+          onSelectAll={toggleSelectAll}
+          onExport={onExport}
+          onAddNew={onAddNew}
+          totalAmount={totalAmount}
+          actionButton={actionButtons.length > 0 ? {
+            icon: actionButtons[0].icon || <MoreHorizontal className="h-4 w-4" />,
+            onClick: actionButtons[0].onClick
+          } : undefined}
+        >
+          <div className="space-y-1 p-2">
+            {filteredItems.map((item) => (
+              <div 
+                key={item.id} 
+                className="relative"
+              >
+                {listItemComponent({
+                  item,
+                  isSelected: selectedItem?.id === item.id,
+                  onSelect: handleSelectItem,
+                  isChecked: selectedItems.includes(item.id),
+                  onCheckChange: (checked: boolean) => toggleItemSelection(item.id, checked)
+                })}
               </div>
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <p className="text-muted-foreground">選択された{itemName}がありません</p>
+            ))}
+            
+            {filteredItems.length === 0 && (
+              <div className="flex items-center justify-center h-32">
+                <p className="text-muted-foreground">表示する{itemName}がありません</p>
               </div>
             )}
           </div>
-        </div>
+        </ListPanel>
+        
+        {/* 詳細パネル */}
+        <DetailPanel
+          selectedItem={selectedItem}
+          itemName={itemName}
+        >
+          {selectedItem && detailComponent({ selectedItem })}
+        </DetailPanel>
+      </div>
     </div>
-  </div>
   )
 }

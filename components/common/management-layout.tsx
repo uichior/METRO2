@@ -2,6 +2,7 @@ import { useState } from "react"
 import type { ReactNode } from "react"
 import { Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { SidebarNavigation } from "./sidebar-navigation"
 
 interface ManagementLayoutProps {
   navigationPanel?: ReactNode
@@ -27,17 +28,10 @@ export function ManagementLayout({ navigationPanel, listPanel, detailPanel, clas
         </Button>
       )}
 
-      {/* モバイル用ナビゲーションオーバーレイ */}
-      {navigationPanel && isNavOpen && (
-        <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setIsNavOpen(false)} />
-      )}
-
       {/* ナビゲーションサイドバー */}
       {navigationPanel && (
-        <div 
-          className={`fixed lg:relative top-0 left-0 h-full w-60 shrink-0 bg-black text-white z-50 transform transition-transform duration-300 overflow-auto border-r border-gray-800 ${isNavOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} relative`}
-        >
-
+        <div className={`fixed lg:relative top-0 left-0 h-full w-60 shrink-0 bg-black text-white z-50 transform transition-transform duration-300 overflow-auto border-r border-gray-800 ${isNavOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+          {/* モバイル用閉じるボタン */}
           <div className="lg:hidden flex justify-end p-2">
             <Button variant="ghost" size="icon" onClick={() => setIsNavOpen(false)} className="text-white hover:bg-gray-800">
               <X className="h-4 w-4" />
@@ -45,6 +39,11 @@ export function ManagementLayout({ navigationPanel, listPanel, detailPanel, clas
           </div>
           {navigationPanel}
         </div>
+      )}
+      
+      {/* モバイル用オーバーレイ */}
+      {isNavOpen && navigationPanel && (
+        <div className="lg:hidden fixed inset-0 bg-black/50 z-40" onClick={() => setIsNavOpen(false)} />
       )}
 
       {/* リストパネル */}

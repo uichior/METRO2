@@ -6,30 +6,52 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export interface FilterPanelProps {
-  onFilterChange: (filter: { type: string; value: string }) => void
-  activeFilters: Record<string, string>
-  projectCounts: {
+  onFilterChange?: (filter: { type: string; value: string }) => void
+  activeFilters?: Record<string, string>
+  projectCounts?: {
     total: number
     planning: number
     inProgress: number
     completed: number
     onHold: number
   }
+  onSearch?: (term: string) => void
+  onIncompleteOnlyChange?: (value: boolean) => void
 }
 
-export function FilterPanel({ onFilterChange, activeFilters, projectCounts }: FilterPanelProps) {
+export function FilterPanel({ 
+  onFilterChange, 
+  activeFilters = {}, 
+  projectCounts,
+  onSearch,
+  onIncompleteOnlyChange
+}: FilterPanelProps) {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const [incompleteOnly, setIncompleteOnly] = useState<boolean>(false)
 
   const handleFilterClick = (type: string, value: string) => {
-    onFilterChange({ type, value })
+    if (onFilterChange) {
+      onFilterChange({ type, value })
+    }
     
     if (type === 'category') {
       setSelectedCategory(value)
@@ -39,9 +61,31 @@ export function FilterPanel({ onFilterChange, activeFilters, projectCounts }: Fi
   const isActive = (type: string, value: string) => {
     return activeFilters[type] === value
   }
+  
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchTerm(value)
+    if (onSearch) {
+      onSearch(value)
+    }
+  }
+  
+  const handleIncompleteOnlyChange = (checked: boolean) => {
+    setIncompleteOnly(checked)
+    if (onIncompleteOnlyChange) {
+      onIncompleteOnlyChange(checked)
+    }
+  }
 
   return (
     <div className="p-4 space-y-6">
+      {/* 検索ボックスと未完了のみスイッチ */}
+      <div className="space-y-4">
+        {/* 検索ボックスを削除しました */}
+        
+        {/* 計画中のフィルターを削除しました */}
+      </div>
+      
       <Separator className="mt-0" />
 
       <Accordion type="multiple" defaultValue={["status", "assignee", "date"]} className="space-y-2">
@@ -54,25 +98,16 @@ export function FilterPanel({ onFilterChange, activeFilters, projectCounts }: Fi
               <Button
                 variant={isActive('status', 'すべて') ? "secondary" : "ghost"}
                 className="w-full justify-start"
-                onClick={() => handleFilterClick('status', 'すべて')}
               >
-                <FolderKanban className="mr-2 h-4 w-4" />
-                すべて
-                <Badge variant="outline" className="ml-auto">
-                  {projectCounts.total}
-                </Badge>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <FolderKanban className="h-4 w-4 mr-2" />
+                    <span className="text-sm">すべて</span>
+                  </div>
+                  <Badge variant="outline">{projectCounts?.total || 0}</Badge>
+                </div>
               </Button>
-              <Button
-                variant={isActive('status', '計画中') ? "secondary" : "ghost"}
-                className="w-full justify-start"
-                onClick={() => handleFilterClick('status', '計画中')}
-              >
-                <Calendar className="mr-2 h-4 w-4 text-blue-500" />
-                計画中
-                <Badge variant="outline" className="ml-auto">
-                  {projectCounts.planning}
-                </Badge>
-              </Button>
+              {/* 計画中のボタンを削除しました */}
               <Button
                 variant={isActive('status', '進行中') ? "secondary" : "ghost"}
                 className="w-full justify-start"
@@ -81,7 +116,7 @@ export function FilterPanel({ onFilterChange, activeFilters, projectCounts }: Fi
                 <Clock className="mr-2 h-4 w-4 text-yellow-500" />
                 進行中
                 <Badge variant="outline" className="ml-auto">
-                  {projectCounts.inProgress}
+                  {projectCounts?.inProgress || 0}
                 </Badge>
               </Button>
               <Button
@@ -92,7 +127,7 @@ export function FilterPanel({ onFilterChange, activeFilters, projectCounts }: Fi
                 <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
                 完了
                 <Badge variant="outline" className="ml-auto">
-                  {projectCounts.completed}
+                  {projectCounts?.completed || 0}
                 </Badge>
               </Button>
               <Button
@@ -103,7 +138,7 @@ export function FilterPanel({ onFilterChange, activeFilters, projectCounts }: Fi
                 <AlertTriangle className="mr-2 h-4 w-4 text-red-500" />
                 中断
                 <Badge variant="outline" className="ml-auto">
-                  {projectCounts.onHold}
+                  {projectCounts?.onHold || 0}
                 </Badge>
               </Button>
             </div>

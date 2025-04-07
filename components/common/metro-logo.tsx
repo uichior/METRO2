@@ -115,15 +115,22 @@ export function MetroLogo({ line, size = "md", className, showLabel = false, col
 
 // ページ名とメトロ路線のマッピング
 export const pageToMetroLine: Record<string, MetroLine> = {
-  dashboard: "marunouchi", // ダッシュボードはそのままですが、後でオーバーライドします
-  inventory: "ginza", // 銀座線（オレンジ）
-  orders: "marunouchi", // 丸ノ内線（レッド）
-  purchase: "yurakucho", // 有楽町線（ゴールド）
-  procurement: "hanzomon", // 半蔵門線（パープル）
-  delivery: "tozai", // 東西線（スカイブルー）
-  budget: "fukutoshin", // 副都心線（ブラウン）
-  payment: "namboku", // 南北線（エメラルド）
-  billing: "chiyoda", // 千代田線（グリーン）
-  "daily-report": "hibiya", // 日比谷線（シルバー）
-  master: "marunouchi", // マスタもそのままですが、後でオーバーライドします
+  // メイン
+  dashboard: "marunouchi", // 丸ノ内線（レッド）
+  
+  // 業務系
+  orders: "marunouchi", // 丸ノ内線（レッド）- 受注
+  delivery: "ginza", // 銀座線（オレンジ）- 納品
+  billing: "hibiya", // 日比谷線（シルバー）- 請求
+  arrangement: "chiyoda", // 千代田線（グリーン）- 手配
+  purchasing: "tozai", // 東西線（スカイブルー）- 仕入
+  payment: "yurakucho", // 有楽町線（ゴールド）- 支払
+  inventory: "namboku", // 南北線（エメラルド）- 在庫
+  budget: "hanzomon", // 半蔵門線（パープル）- 予算
+  dailyreport: "fukutoshin", // 副都心線（ブラウン）- 日報
+  
+  // その他
+  settings: "marunouchi", // 設定
+  master: "marunouchi", // マスタ
+  profile: "marunouchi" // プロフィール
 }

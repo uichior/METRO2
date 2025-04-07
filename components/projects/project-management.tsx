@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { ManagementPageTemplate } from "../templates/management-page-template"
 import { ProjectListItem } from "./project-list-item"
 import { ProjectDetail } from "./project-detail"
 import { Project } from "./types"
+import { ActionButton } from "../common/management-list"
+import { Trash } from "lucide-react"
 import { FilterPanel } from "./project-filter"
-import { ActionButton, ManagementList } from "../common/management-list"
-import { Edit, Trash, Archive, Mail, Copy, Tag, CheckSquare, Share } from "lucide-react"
 
 // サンプルプロジェクトデータ
 const sampleProjects: Project[] = [
@@ -400,24 +400,14 @@ export function ProjectManagement() {
     }
   }, [])
 
-  // ナビゲーションパネルからのフィルター変更ハンドラー
-  const handleNavigationFilterChange = ({ type, value }: { type: string; value: string }) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      [type]: value
-    }))
-  }
-  
   // 新規プロジェクト追加ハンドラー
   const handleAddNew = () => {
     alert('新規プロジェクトを追加します')
-    // 実際の実装ではここでモーダルを表示するなど
   }
   
   // エクスポートハンドラー
   const handleExport = () => {
     alert('プロジェクト一覧をエクスポートします')
-    // 実際の実装ではCSVダウンロードなど
   }
   
   // 選択変更ハンドラー
@@ -425,172 +415,29 @@ export function ProjectManagement() {
     setSelectedProjectIds(selectedIds)
   }
   
-  // アクションボタンのハンドラー
-  const handleEdit = (ids: string[]) => {
-    alert(`選択したプロジェクト(${ids.join(', ')})を編集します`)
-  }
-  
+  // 削除ハンドラー
   const handleDelete = (ids: string[]) => {
     alert(`選択したプロジェクト(${ids.join(', ')})を削除します`)
-  }
-  
-  const handleArchive = (ids: string[]) => {
-    alert(`選択したプロジェクト(${ids.join(', ')})をアーカイブします`)
-  }
-  
-  const handleSendMail = (ids: string[]) => {
-    alert(`選択したプロジェクト(${ids.join(', ')})に関するメールを送信します`)
-  }
-  
-  const handleDuplicate = (ids: string[]) => {
-    if (ids.length !== 1) {
-      alert('複製は1件のみ選択してください')
-      return
-    }
-    alert(`プロジェクト(${ids[0]})を複製します`)
   }
   
   // アクションボタンの定義
   const actionButtons: ActionButton[] = [
     {
-      label: '編集',
-      icon: <Edit className="h-4 w-4" />,
-      onClick: handleEdit
-    },
-    {
       label: '削除',
       icon: <Trash className="h-4 w-4" />,
       onClick: handleDelete,
       color: 'destructive'
-    },
-    {
-      label: 'アーカイブ',
-      icon: <Archive className="h-4 w-4" />,
-      onClick: handleArchive
-    },
-    {
-      label: 'メール送信',
-      icon: <Mail className="h-4 w-4" />,
-      onClick: handleSendMail
-    },
-    {
-      label: '複製',
-      icon: <Copy className="h-4 w-4" />,
-      onClick: handleDuplicate,
-      disabled: selectedProjectIds.length !== 1
-    },
-    {
-      label: 'ステータス変更',
-      icon: <Tag className="h-4 w-4" />,
-      onClick: (ids) => alert(`選択したプロジェクト(${ids.join(', ')})のステータスを変更します`)
-    },
-    {
-      label: 'タスク完了',
-      icon: <CheckSquare className="h-4 w-4" />,
-      onClick: (ids) => alert(`選択したプロジェクト(${ids.join(', ')})のタスクを完了としてマークします`)
-    },
-    {
-      label: '共有',
-      icon: <Share className="h-4 w-4" />,
-      onClick: (ids) => alert(`選択したプロジェクト(${ids.join(', ')})を共有します`)
     }
   ]
   
-  // アプリレイアウトからのイベントを受け取る
-  useEffect(() => {
-    // 検索イベント
-    const handleAppSearch = (event: CustomEvent<{query: string}>) => {
-      setSearchTerm(event.detail.query)
-    }
-    
-    // 新規追加イベント
-    const handleAppAddNew = () => {
-      handleAddNew()
-    }
-    
-    // エクスポートイベント
-    const handleAppExport = () => {
-      handleExport()
-    }
-    
-    // フィルター変更イベント
-    const handleAppFilterChange = (event: CustomEvent<{filterId: string, value: string}>) => {
-      const { filterId, value } = event.detail
-      // ヘッダーからのフィルターを受け取り、ナビゲーションパネルのフィルターと統合する
-      if (filterId === 'year' || filterId === 'month') {
-        // 年や月のフィルターはプロジェクトの開始日や終了日に影響する
-        console.log(`フィルター変更: ${filterId} = ${value}`)
-      }
-    }
-    
-    // イベントリスナーを登録
-    window.addEventListener('app-search', handleAppSearch as EventListener)
-    window.addEventListener('app-add-new', handleAppAddNew)
-    window.addEventListener('app-export', handleAppExport)
-    window.addEventListener('app-filter-change', handleAppFilterChange as EventListener)
-    
-    // クリーンアップ
-    return () => {
-      window.removeEventListener('app-search', handleAppSearch as EventListener)
-      window.removeEventListener('app-add-new', handleAppAddNew)
-      window.removeEventListener('app-export', handleAppExport)
-      window.removeEventListener('app-filter-change', handleAppFilterChange as EventListener)
-    }
-  }, [])
 
-  // プロジェクトのフィルターパネル
-  const filterPanel = (
-    <FilterPanel
-      onFilterChange={({ type, value }) => {
-        setActiveFilters(prev => ({
-          ...prev,
-          [type]: value
-        }))
-      }}
-      activeFilters={activeFilters}
-      projectCounts={{
-        total: sampleProjects.length,
-        planning: sampleProjects.filter(p => p.status === '計画中').length,
-        inProgress: sampleProjects.filter(p => p.status === '進行中').length,
-        completed: sampleProjects.filter(p => p.status === '完了').length,
-        onHold: sampleProjects.filter(p => p.status === '中断').length
-      }}
-    />
-  )
 
-  // フィルタリングされたプロジェクト
+
+
+  // プロジェクト一覧
   const filteredProjects = useMemo(() => {
-    return sampleProjects.filter(project => {
-      // 検索語句によるフィルタリング
-      if (searchTerm && !(
-        project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.manager.toLowerCase().includes(searchTerm.toLowerCase())
-      )) {
-        return false
-      }
-      
-      // ステータスフィルター
-      if (activeFilters.status !== 'すべて' && project.status !== activeFilters.status) {
-        return false
-      }
-      
-      // 担当者フィルター
-      if (activeFilters.assignee !== 'すべて' && project.manager !== activeFilters.assignee) {
-        return false
-      }
-      
-      // 期間フィルター（簡易実装）
-      if (activeFilters.timeframe !== 'すべて') {
-        // 実際には日付範囲の詳細なフィルタリングが必要
-        return true
-      }
-      
-      return true
-    })
-  }, [activeFilters, searchTerm])
+    return sampleProjects
+  }, [])
 
   // 合計金額計算関数
   const calculateTotalAmount = (projects: Project[]) => {
@@ -600,13 +447,71 @@ export function ProjectManagement() {
     }, 0)
   }
 
+  // フィルタリング関数
+  const getFilteredItems = (items: Project[], searchTerm: string, filters: Record<string, string>, incompleteOnly: boolean) => {
+    let result = [...items]
+    
+    // ステータスフィルター
+    if (filters.status && filters.status !== 'すべて') {
+      result = result.filter(project => project.status === filters.status)
+    }
+    
+    // 予算フィルター
+    if (filters.budget && filters.budget !== 'すべて') {
+      if (filters.budget === '1000万円未満') {
+        result = result.filter(project => project.budget < 10000000)
+      } else if (filters.budget === '1000万円以上3000万円未満') {
+        result = result.filter(project => project.budget >= 10000000 && project.budget < 30000000)
+      } else if (filters.budget === '3000万円以上') {
+        result = result.filter(project => project.budget >= 30000000)
+      }
+    }
+    
+    // 検索フィルター
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      result = result.filter(project => {
+        return (
+          project.name.toLowerCase().includes(searchLower) ||
+          project.code.toLowerCase().includes(searchLower) ||
+          project.description.toLowerCase().includes(searchLower) ||
+          project.client.toLowerCase().includes(searchLower) ||
+          project.manager.toLowerCase().includes(searchLower)
+        )
+      })
+    }
+    
+    // 未完了のみ表示
+    if (incompleteOnly) {
+      result = result.filter(project => project.status !== '完了')
+    }
+    
+    return result
+  }
+
+  // フィルター変更ハンドラー
+  const handleFilterChange = (filter: { type: string; value: string }) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      [filter.type]: filter.value
+    }))
+  }
+
   return (
     <ManagementPageTemplate
       title="プロジェクト管理"
       itemName="プロジェクト"
-      items={filteredProjects}
-      getFilteredItems={() => filteredProjects}
-      filterPanel={filterPanel}
+      items={sampleProjects}
+      getFilteredItems={getFilteredItems}
+      filterPanel={
+        <FilterPanel 
+          onFilterChange={handleFilterChange}
+          activeFilters={activeFilters}
+          projectCounts={projectCounts}
+        />
+      }
+      filterConfigs={filterConfigs}
+
       listItemComponent={({ item, isSelected, onSelect }) => (
         <ProjectListItem 
           project={item as Project} 
@@ -630,7 +535,7 @@ export function ProjectManagement() {
       detailComponent={({ selectedItem }) => (
         <ProjectDetail selectedProject={selectedItem as Project} />
       )}
-      filterConfigs={filterConfigs}
+
       onAddNew={handleAddNew}
       onExport={handleExport}
     />
