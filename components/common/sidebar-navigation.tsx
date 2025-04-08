@@ -14,7 +14,43 @@ import {
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { MetroLogo } from "./metro-logo"
-import { pageMapping } from "@/lib/page-mapping"
+// ページマッピングの定義
+interface PageItem {
+  name: string;
+  path: string;
+  icon: React.ReactElement;
+  badge?: string;
+}
+
+const pageMapping: Record<string, PageItem> = {
+  orders: {
+    name: "受注管理",
+    path: "/orders",
+    icon: <ShoppingCart size={20} />,
+    badge: "新規"
+  },
+  deliveries: {
+    name: "納品管理",
+    path: "/deliveries",
+    icon: <Truck size={20} />
+  },
+  billing: {
+    name: "請求管理",
+    path: "/billing",
+    icon: <FileText size={20} />
+  },
+  arrangements: {
+    name: "手配管理",
+    path: "/arrangements",
+    icon: <Hammer size={20} />
+  },
+  purchases: {
+    name: "仕入管理",
+    path: "/purchases",
+    icon: <Package size={20} />,
+    badge: "新規"
+  }
+}
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -30,7 +66,8 @@ import {
   LogOut,
   User,
   Bell,
-  Search
+  Search,
+  Package
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
