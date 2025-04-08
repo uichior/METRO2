@@ -16,3 +16,17 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
+/**
+ * 日付文字列を日本語形式でフォーマットする
+ */
+export function formatDate(dateString: string): string {
+  if (!dateString) return ""
+  
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  }).format(date)
+}
+
