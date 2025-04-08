@@ -2,12 +2,13 @@
 
 import { ReactNode } from "react"
 import { Header } from "@/components/common/header"
+import { FilterPanel, FilterSection } from "@/components/shared/filter-panel"
 import { ListPanel } from "@/components/shared/list-panel"
-import { FilterPanel } from "@/components/shared/filter-panel"
-import { Checkbox } from "@/components/ui/checkbox"
+import { DetailPanel } from "@/components/shared/detail-panel"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
-import { Trash, Plus, Download } from "lucide-react"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Plus, Download, ShoppingCart, Truck, FileText, Hammer, Package } from "lucide-react"
+import { Trash } from "lucide-react"
 import { ManagementProvider, useManagement } from "./management-context"
 
 // 基本的なアイテムの型定義
@@ -38,6 +39,9 @@ export interface ManagementTemplateProps<T extends BaseItem> {
   onExport?: () => void
   onDelete?: (ids: string[]) => void
   
+  // 合計金額計算
+  calculateTotal?: (items: T[]) => number
+  
   // コンポーネント
   filterPanel: ReactNode
   listItemComponent: (props: { 
@@ -62,7 +66,7 @@ function ListItemWrapper<T extends BaseItem>({
     selectedItem, 
     handleSelectItem, 
     selectedIds, 
-    handleCheckChange 
+    handleCheckItem 
   } = useManagement<T>()
   
   return listItemComponent({
@@ -70,7 +74,7 @@ function ListItemWrapper<T extends BaseItem>({
     isSelected: selectedItem?.id === item.id,
     onSelect: handleSelectItem,
     isChecked: selectedIds.includes(item.id),
-    onCheckChange: (checked) => handleCheckChange(item.id, checked)
+    onCheckChange: (checked) => handleCheckItem(item.id, checked)
   })
 }
 
@@ -88,35 +92,17 @@ function ListHeader() {
   
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="select-all"
-            checked={selectedIds.length > 0 && selectedIds.length === filteredItems.length}
-            onCheckedChange={toggleSelectAll}
-            aria-label="すべて選択"
-          />
-          {setIncompleteOnly && (
-            <div className="flex items-center gap-2 ml-4">
-              <Switch
-                id="incomplete-only"
-                checked={incompleteOnly}
-                onCheckedChange={setIncompleteOnly}
-              />
-              <label htmlFor="incomplete-only" className="text-sm cursor-pointer">
-                未納のみ
-              </label>
-            </div>
-          )}
-        </div>
-        <div className="text-sm text-muted-foreground">
-          {filteredItems.length} 件
-        </div>
-      </div>
-      
-      {selectedIds.length > 0 && handleDelete && (
+      {selectedIds.length > 0 && handleDelete ? (
         <div className="flex items-center justify-between mb-4 bg-muted p-2 rounded-md">
-          <span className="text-sm">{selectedIds.length}件選択中</span>
+          <div className="flex items-center gap-2 pl-2">
+            <Checkbox
+              id="select-all"
+              checked={selectedIds.length > 0 && selectedIds.length === filteredItems.length}
+              onCheckedChange={toggleSelectAll}
+              aria-label="すべて選択"
+            />
+            <span className="text-sm">{selectedIds.length}件選択中</span>
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -126,6 +112,18 @@ function ListHeader() {
             <Trash className="h-4 w-4 mr-1" />
             削除
           </Button>
+        </div>
+      ) : (
+        <div className="flex items-center mb-4">
+          <div className="flex items-center gap-2 pl-2">
+            <Checkbox
+              id="select-all"
+              checked={selectedIds.length > 0 && selectedIds.length === filteredItems.length}
+              onCheckedChange={toggleSelectAll}
+              aria-label="すべて選択"
+            />
+            <span className="text-sm text-muted-foreground">すべて選択</span>
+          </div>
         </div>
       )}
     </>
@@ -144,6 +142,7 @@ export function ManagementTemplate<T extends BaseItem>({
   onAddNew,
   onExport,
   onDelete,
+  calculateTotal,
   filterPanel,
   listItemComponent,
   detailComponent
@@ -151,42 +150,48 @@ export function ManagementTemplate<T extends BaseItem>({
   
   return (
     <ManagementProvider
+      title={title}
       items={items}
       filteredItems={filteredItems}
+      searchPlaceholder={searchPlaceholder}
+      onSearch={onSearch}
+      onIncompleteChange={onIncompleteChange}
       onAddNew={onAddNew}
       onExport={onExport}
       onDelete={onDelete}
+      calculateTotal={calculateTotal}
+      filterPanel={filterPanel}
+      listItemComponent={listItemComponent}
+      detailComponent={detailComponent}
     >
-      <ManagementTemplateContent
-        title={title}
-        onSearch={onSearch}
-        searchPlaceholder={searchPlaceholder}
-        incompleteOnly={incompleteOnly}
-        onIncompleteChange={onIncompleteChange}
-        filterPanel={filterPanel}
-        listItemComponent={listItemComponent}
-        detailComponent={detailComponent}
-      />
+      <ManagementTemplateContent />
     </ManagementProvider>
   )
 }
 
 // 内部コンテンツコンポーネント（コンテキストを使用）
-function ManagementTemplateContent<T extends BaseItem>({
-  title,
-  onSearch,
-  searchPlaceholder,
-  incompleteOnly,
-  onIncompleteChange,
-  filterPanel,
-  listItemComponent,
-  detailComponent
-}: Omit<ManagementTemplateProps<T>, 'items' | 'filteredItems' | 'onAddNew' | 'onExport' | 'onDelete'>) {
-  
-  const { 
-    filteredItems, 
+function ManagementTemplateContent<T extends BaseItem>() {
+  const {
+    title,
+    items,
+    filteredItems,
+    searchPlaceholder,
+    onSearch,
+    incompleteOnly,
+    onIncompleteChange,
+    onAddNew,
+    onExport,
+    onDelete,
+    calculateTotal,
+    filterPanel,
+    listItemComponent,
+    detailComponent,
     selectedItem,
-    handleAddNew,
+    selectedIds,
+    toggleSelectAll,
+    handleSelectItem,
+    handleCheckItem,
+    handleDelete,
     handleExport,
     setSearchQuery,
     setIncompleteOnly
@@ -198,23 +203,33 @@ function ManagementTemplateContent<T extends BaseItem>({
     if (onSearch) onSearch(query)
   }
   
-  // 未完了フィルター切り替えハンドラー
-  const handleIncompleteChange = (checked: boolean) => {
-    setIncompleteOnly(checked)
-    if (onIncompleteChange) onIncompleteChange(checked)
+  // ページタイトルに対応するアイコンを取得
+  const getPageIcon = () => {
+    if (title.includes("受注")) return <ShoppingCart size={20} />
+    if (title.includes("納品")) return <Truck size={20} />
+    if (title.includes("請求")) return <FileText size={20} />
+    if (title.includes("手配")) return <Hammer size={20} />
+    if (title.includes("仕入")) return <Package size={20} />
+    return null
   }
+  
+  const pageIcon = getPageIcon()
   
   return (
     <div className="flex h-full w-full flex-col overflow-hidden">
       {/* ヘッダー */}
-      <Header 
+      <Header
         title={title}
-        onSearch={handleSearch}
-        searchPlaceholder={searchPlaceholder}
-        rightContent={
-          <div className="flex items-center gap-2">
-            {handleAddNew && (
-              <Button size="sm" onClick={handleAddNew}>
+        showSearch={false}
+        leftContent={
+          <div className="flex items-center gap-2 ml-4">
+            {pageIcon && (
+              <div className="mr-2">
+                {pageIcon}
+              </div>
+            )}
+            {onAddNew && (
+              <Button size="sm" onClick={onAddNew}>
                 <Plus className="h-4 w-4 mr-1" />
                 新規
               </Button>
@@ -229,7 +244,7 @@ function ManagementTemplateContent<T extends BaseItem>({
         }
       />
       
-      <div className="grid grid-cols-[250px_1fr_400px] gap-4 h-full p-4">
+      <div className="grid grid-cols-[250px_350px_1fr] gap-4 h-full p-4">
         {/* フィルターパネル */}
         <div className="overflow-y-auto">
           {filterPanel}
@@ -241,10 +256,20 @@ function ManagementTemplateContent<T extends BaseItem>({
             title={`${title}一覧`}
             searchPlaceholder={searchPlaceholder}
             onSearch={handleSearch}
-            onAdd={handleAddNew}
+            // onAddプロパティは削除されました - 新規作成ボタンはヘッダーのみに表示
             emptyState={
               <div className="flex items-center justify-center h-32">
                 <p className="text-muted-foreground">データがありません</p>
+              </div>
+            }
+            footerContent={
+              <div className="flex items-center justify-between px-2">
+                <div>{filteredItems.length} 件表示</div>
+                {calculateTotal && (
+                  <div className="font-medium">
+                    合計: {new Intl.NumberFormat('ja-JP', { style: 'currency', currency: 'JPY' }).format(calculateTotal(filteredItems))}
+                  </div>
+                )}
               </div>
             }
           >

@@ -5,6 +5,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/common/theme-provider"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { SidebarNavigation } from "@/components/common/sidebar-navigation"
+import { SwipeSidebar } from "@/components/common/swipe-sidebar"
 
 const inter = Inter({ subsets: ["latin"] })
 const notoSansJP = Noto_Sans_JP({
@@ -30,12 +31,14 @@ export default function RootLayout({
       <body className={`${inter.className} font-sans`}>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <SidebarProvider>
-            <div className="flex h-screen w-full overflow-hidden">
-              <SidebarNavigation />
-              <div className="flex-1 overflow-auto">
-                {children}
+            <SwipeSidebar>
+              <div className="flex h-screen w-full overflow-hidden">
+                <SidebarNavigation />
+                <div className="flex-1 overflow-auto">
+                  {children}
+                </div>
               </div>
-            </div>
+            </SwipeSidebar>
           </SidebarProvider>
         </ThemeProvider>
       </body>

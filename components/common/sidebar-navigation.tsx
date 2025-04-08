@@ -13,7 +13,29 @@ import {
 } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { MetroLogo } from "./metro-logo"
+import { MetroLogo } from "@/components/common/metro-logo"
+import { ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Truck,
+  FileText,
+  Hammer,
+  ShoppingBag,
+  Warehouse,
+  PiggyBank,
+  CreditCard,
+  Settings,
+  LogOut,
+  User,
+  Bell,
+  Search,
+  Package
+} from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+
 // ページマッピングの定義
 interface PageItem {
   name: string;
@@ -26,8 +48,7 @@ const pageMapping: Record<string, PageItem> = {
   orders: {
     name: "受注管理",
     path: "/orders",
-    icon: <ShoppingCart size={20} />,
-    badge: "新規"
+    icon: <ShoppingCart size={20} />
   },
   deliveries: {
     name: "納品管理",
@@ -47,37 +68,13 @@ const pageMapping: Record<string, PageItem> = {
   purchases: {
     name: "仕入管理",
     path: "/purchases",
-    icon: <Package size={20} />,
-    badge: "新規"
+    icon: <Package size={20} />
   }
 }
-import {
-  LayoutDashboard,
-  ShoppingCart,
-  Truck,
-  FileText,
-  Hammer,
-  ShoppingBag,
-  Warehouse,
-  PiggyBank,
-  CreditCard,
-  Settings,
-  ChevronRight,
-  LogOut,
-  User,
-  Bell,
-  Search,
-  Package
-} from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-
-// 共通のページマッピングを使用
 
 export function SidebarNavigation() {
   const pathname = usePathname()
-  const { state } = useSidebar()
+  const { state, toggleSidebar } = useSidebar()
   const isExpanded = state === "expanded"
 
   // 現在のパスに基づいてアクティブなメニュー項目を判断する関数
@@ -94,18 +91,28 @@ export function SidebarNavigation() {
     <Sidebar 
       variant="sidebar" 
       collapsible="icon" 
-      className="border-r border-border text-black transition-all duration-300 ease-in-out"
+      className="border-r border-border bg-black text-white transition-all duration-300 ease-in-out"
     >
       <div className={cn(
-        "h-16 flex items-center border-b border-gray-800",
+        "h-16 flex items-center border-b border-gray-700",
         isExpanded ? "justify-between px-6" : "justify-center"
       )}>
         <div className="flex items-center gap-2">
-          <MetroLogo size="sm" color="black" />
+          <MetroLogo size="sm" color="white" />
           {isExpanded && (
-            <span className="text-xl font-bold text-black">METRO</span>
+            <span className="text-xl font-bold text-white">METRO</span>
           )}
         </div>
+        {isExpanded && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => toggleSidebar()}
+            className="text-white rounded-full hover:bg-white/10 h-8 w-8 p-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+        )}
       </div>
       
       {/* 検索ボックスを削除 */}
@@ -122,11 +129,11 @@ export function SidebarNavigation() {
                     <SidebarMenuButton
                       asChild
                       isActive={isActive(item.path)}
-                      className="flex h-12 w-full items-center rounded-lg px-4 text-sm group relative overflow-hidden text-black hover:bg-black/10 hover:text-black"
+                      className="flex h-12 w-full items-center rounded-lg px-4 text-sm group relative overflow-hidden text-white hover:bg-white/10 hover:text-white"
                     >
                       <Link href={item.path} className="flex items-center w-full">
-                        <div className="flex items-center justify-center h-9 w-9 rounded-md mr-3">
-                          {React.cloneElement(item.icon as React.ReactElement, { style: { color: "black" } })}
+                        <div className="flex items-center justify-center h-9 w-9 rounded-md mr-4">
+                          {React.cloneElement(item.icon as React.ReactElement, { style: { color: "white" } })}
                         </div>
                         {isExpanded && (
                           <div className="flex flex-1 items-center justify-between">
@@ -134,7 +141,7 @@ export function SidebarNavigation() {
                             {item.badge && (
                               <Badge 
                                 variant="outline" 
-                                className="ml-auto bg-white text-black text-xs font-normal py-0 h-5 border-black"
+                                className="ml-auto bg-gray-800 text-white text-xs font-normal py-0 h-5 border-gray-600"
                               >
                                 {item.badge}
                               </Badge>
@@ -145,10 +152,10 @@ export function SidebarNavigation() {
                     </SidebarMenuButton>
                   </TooltipTrigger>
                   {!isExpanded && (
-                    <TooltipContent side="right" className="flex items-center gap-2 text-black">
+                    <TooltipContent side="right" className="flex items-center gap-2 text-white bg-gray-800">
                       <span>{item.name}</span>
                       {item.badge && (
-                        <Badge variant="outline" className="bg-white text-black text-xs border-black">
+                        <Badge variant="outline" className="bg-gray-800 text-white text-xs border-gray-600">
                           {item.badge}
                         </Badge>
                       )}

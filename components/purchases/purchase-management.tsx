@@ -8,8 +8,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Button } from "@/components/ui/button"
-import { Edit, Calendar, CreditCard, Package, Building, Truck } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Edit, Calendar, CreditCard, Package, Building, Truck, Trash2, Tag, Users, Clock, Filter } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { useManagement } from "@/components/templates/management-context"
 
 // 仕入データの型定義
 interface Purchase {
@@ -168,8 +170,17 @@ export default function PurchaseManagement() {
   
   // フィルターパネル
   const filterPanel = (
-    <FilterPanel title="絞り込み" onReset={handleResetFilters}>
-      <FilterSection title="ステータス">
+    <FilterPanel 
+      title="絞り込み" 
+      onReset={handleResetFilters}
+      onSearch={handleSearch}
+      searchPlaceholder="仕入番号、仕入先を検索..."
+      incompleteOnly={incompleteOnly}
+      onIncompleteChange={handleIncompleteChange}
+      incompleteLabel="未入荷のみ"
+      icon={<Filter className="h-4 w-4 mr-2" />}
+    >
+      <FilterSection title="ステータス" icon={<Tag className="h-4 w-4 mr-2" />}>
         <div className="space-y-2">
           <div className="flex items-center">
             <input
@@ -229,7 +240,7 @@ export default function PurchaseManagement() {
         </div>
       </FilterSection>
       
-      <FilterSection title="仕入先">
+      <FilterSection title="仕入先" icon={<Building className="h-4 w-4 mr-2" />}>
         <div className="space-y-2">
           <div className="flex items-center">
             <input
@@ -291,7 +302,22 @@ export default function PurchaseManagement() {
               <div className="font-medium">{item.purchaseNumber}</div>
               <StatusBadge status={item.status} />
             </div>
-            <div className="text-sm mb-1">{item.supplierName}</div>
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-sm">{item.supplierName}</div>
+              <button 
+                className="text-muted-foreground hover:text-destructive transition-colors" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (confirm(`「${item.purchaseNumber}」を削除しますか？`)) {
+                    alert(`${item.purchaseNumber} を削除しました`);
+                  }
+                }}
+                aria-label="削除"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+
             <div className="flex items-center text-xs text-muted-foreground gap-4">
               <div className="flex items-center">
                 <Calendar className="h-3 w-3 mr-1" />
@@ -309,131 +335,166 @@ export default function PurchaseManagement() {
   )
   
   // 詳細コンポーネント
-  const detailComponent = (
-    <DetailPanel
-      title="仕入詳細"
-      tabs={[
-        { value: "summary", label: "概要" },
-        { value: "items", label: "アイテム" },
-        { value: "supplier", label: "仕入先情報" },
-        { value: "history", label: "履歴" }
-      ]}
-      defaultTab="summary"
-      actions={
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline">
-            <Edit className="h-4 w-4 mr-1" />
-            編集
-          </Button>
-        </div>
-      }
-    >
-      <DetailTab value="summary" label="概要">
-        <Card>
-          <CardContent className="p-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold">{filteredPurchases.find(p => p.id === "purchase-1")?.purchaseNumber}</h3>
-              <StatusBadge status={filteredPurchases.find(p => p.id === "purchase-1")?.status || "pending"} />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-sm text-muted-foreground">仕入先</div>
-                <div>{filteredPurchases.find(p => p.id === "purchase-1")?.supplierName}</div>
+  const DetailComponentContent = () => {
+    // 選択されたアイテムを取得
+    const { selectedItem } = useManagement<Purchase>();
+    const selectedPurchase = selectedItem as Purchase | null;
+    
+    if (!selectedPurchase) {
+      return (
+        <DetailPanel
+          title="仕入詳細"
+          tabs={[
+            { value: "summary", label: "概要" },
+            { value: "items", label: "アイテム" },
+            { value: "supplier", label: "仕入先情報" },
+            { value: "history", label: "履歴" }
+          ]}
+          defaultTab="summary"
+        >
+          <DetailTab value="summary" label="概要">
+            <Card>
+              <CardContent className="p-4 flex items-center justify-center h-40">
+                <div className="text-muted-foreground">アイテムを選択してください</div>
+              </CardContent>
+            </Card>
+          </DetailTab>
+        </DetailPanel>
+      );
+    }
+    
+    return (
+      <DetailPanel
+        title="仕入詳細"
+        tabs={[
+          { value: "summary", label: "概要" },
+          { value: "items", label: "アイテム" },
+          { value: "supplier", label: "仕入先情報" },
+          { value: "history", label: "履歴" }
+        ]}
+        defaultTab="summary"
+        actions={
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline">
+              <Edit className="h-4 w-4 mr-1" />
+              編集
+            </Button>
+          </div>
+        }
+      >
+        <DetailTab value="summary" label="概要">
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">{selectedPurchase.purchaseNumber}</h3>
+                <StatusBadge status={selectedPurchase.status} />
               </div>
-              <div>
-                <div className="text-sm text-muted-foreground">発注日</div>
-                <div>{formatDate(filteredPurchases.find(p => p.id === "purchase-1")?.orderDate || "")}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">入荷予定日</div>
-                <div>{formatDate(filteredPurchases.find(p => p.id === "purchase-1")?.deliveryDate || "")}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">金額</div>
-                <div>{formatCurrency(filteredPurchases.find(p => p.id === "purchase-1")?.amount || 0)}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </DetailTab>
-      
-      <DetailTab value="items" label="アイテム">
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-semibold mb-4">仕入アイテム</h3>
-            <div className="space-y-2">
-              {filteredPurchases.find(p => p.id === "purchase-1")?.items.map(item => (
-                <div key={item.id} className="flex items-center justify-between py-2 border-b">
-                  <div>
-                    <div className="font-medium">{item.name}</div>
-                    <div className="text-sm text-muted-foreground">数量: {item.quantity}</div>
-                  </div>
-                  <div className="text-right">
-                    <div>{formatCurrency(item.price)}</div>
-                    <div className="text-sm text-muted-foreground">合計: {formatCurrency(item.price * item.quantity)}</div>
-                  </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-muted-foreground">仕入先</div>
+                  <div>{selectedPurchase.supplierName}</div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </DetailTab>
-      
-      <DetailTab value="supplier" label="仕入先情報">
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-semibold mb-4">仕入先情報</h3>
-            <div className="space-y-4">
-              <div>
-                <div className="text-sm text-muted-foreground">会社名</div>
-                <div className="font-medium">東京金属工業株式会社</div>
+                <div>
+                  <div className="text-sm text-muted-foreground">発注日</div>
+                  <div>{formatDate(selectedPurchase.orderDate)}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">入荷予定日</div>
+                  <div>{formatDate(selectedPurchase.deliveryDate)}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">金額</div>
+                  <div>{formatCurrency(selectedPurchase.amount)}</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-muted-foreground">住所</div>
-                <div>〒123-4567 東京都大田区金属町1-2-3</div>
+            </CardContent>
+          </Card>
+        </DetailTab>
+        
+        <DetailTab value="items" label="アイテム">
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-4">仕入アイテム</h3>
+              <div className="space-y-2">
+                {selectedPurchase.items.map(item => (
+                  <div key={item.id} className="flex items-center justify-between py-2 border-b">
+                    <div>
+                      <div className="font-medium">{item.name}</div>
+                      <div className="text-sm text-muted-foreground">数量: {item.quantity}</div>
+                    </div>
+                    <div className="text-right">
+                      <div>{formatCurrency(item.price)}</div>
+                      <div className="text-sm text-muted-foreground">合計: {formatCurrency(item.price * item.quantity)}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div>
-                <div className="text-sm text-muted-foreground">電話番号</div>
-                <div>03-1234-5678</div>
+            </CardContent>
+          </Card>
+        </DetailTab>
+        
+        <DetailTab value="supplier" label="仕入先情報">
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-4">仕入先情報</h3>
+              <div className="space-y-4">
+                <div>
+                  <div className="text-sm text-muted-foreground">会社名</div>
+                  <div className="font-medium">{selectedPurchase.supplierName}</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">住所</div>
+                  <div>東京都品川区大崎1-2-3</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">電話番号</div>
+                  <div>03-1234-5678</div>
+                </div>
+                <div>
+                  <div className="text-sm text-muted-foreground">担当者</div>
+                  <div>山田太郎</div>
+                </div>
               </div>
-              <div>
-                <div className="text-sm text-muted-foreground">担当者</div>
-                <div>鈴木 一郎</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">メールアドレス</div>
-                <div>suzuki@tokyo-metal.example.com</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </DetailTab>
-      
-      <DetailTab value="history" label="履歴">
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-semibold mb-4">履歴</h3>
-            <div className="space-y-4">
-              <div className="flex items-start gap-2">
-                <div className="w-24 text-sm text-muted-foreground">2023/01/25</div>
+            </CardContent>
+          </Card>
+        </DetailTab>
+        
+        <DetailTab value="history" label="履歴">
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-4">履歴</h3>
+              <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <div className="bg-primary/10 p-2 rounded-full">
+                  <Package className="h-4 w-4 text-primary" />
+                </div>
                 <div>
                   <div className="font-medium">入荷完了</div>
-                  <div className="text-sm text-muted-foreground">すべてのアイテムが入荷しました</div>
+                  <div className="text-sm text-muted-foreground">2023-01-25 10:30</div>
+                  <div className="text-sm mt-1">すべてのアイテムが入荷しました。</div>
                 </div>
               </div>
-              <div className="flex items-start gap-2">
-                <div className="w-24 text-sm text-muted-foreground">2023/01/12</div>
+              
+              <div className="flex items-start gap-3">
+                <div className="bg-primary/10 p-2 rounded-full">
+                  <Truck className="h-4 w-4 text-primary" />
+                </div>
                 <div>
-                  <div className="font-medium">発送通知受領</div>
-                  <div className="text-sm text-muted-foreground">仕入先から発送通知を受領しました</div>
+                  <div className="font-medium">発送通知</div>
+                  <div className="text-sm text-muted-foreground">2023-01-20 14:15</div>
+                  <div className="text-sm mt-1">仕入先から発送されました。</div>
                 </div>
               </div>
-              <div className="flex items-start gap-2">
-                <div className="w-24 text-sm text-muted-foreground">2023/01/10</div>
+              
+              <div className="flex items-start gap-3">
+                <div className="bg-primary/10 p-2 rounded-full">
+                  <Edit className="h-4 w-4 text-primary" />
+                </div>
                 <div>
                   <div className="font-medium">発注</div>
-                  <div className="text-sm text-muted-foreground">発注書を送信しました</div>
+                  <div className="text-sm text-muted-foreground">{formatDate(selectedPurchase.orderDate)} 09:45</div>
+                  <div className="text-sm mt-1">発注書を送信しました。</div>
                 </div>
               </div>
             </div>
@@ -441,24 +502,24 @@ export default function PurchaseManagement() {
         </Card>
       </DetailTab>
     </DetailPanel>
-  )
-  
-  // メインコンポーネントのレンダリング
+  );
+}
+
   return (
     <ManagementTemplate
       title="仕入管理"
       items={purchases}
       filteredItems={filteredPurchases}
       onSearch={handleSearch}
-      searchPlaceholder="仕入番号、仕入先で検索"
-      incompleteOnly={incompleteOnly}
+      searchPlaceholder="仕入番号、仕入先名で検索"
       onIncompleteChange={handleIncompleteChange}
-      onAddNew={handleAddNew}
-      onExport={handleExport}
-      onDelete={handleDelete}
+      onAddNew={() => alert("新規仕入作成")}
+      onExport={() => alert("仕入データ出力")}
+      onDelete={(ids) => alert(`選択した${ids.length}件の仕入を削除`)}
+      calculateTotal={(items) => items.reduce((sum, item) => sum + item.amount, 0)}
       filterPanel={filterPanel}
       listItemComponent={listItemComponent}
-      detailComponent={detailComponent}
+      detailComponent={<DetailComponentContent />}
     />
   )
 }

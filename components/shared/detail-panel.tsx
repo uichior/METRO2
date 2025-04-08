@@ -44,8 +44,7 @@ export function DetailPanel({
   const content = (
     <>
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle>{title}</CardTitle>
+        <div className="flex items-center justify-end">
           <div className="flex items-center gap-2">
             {actions}
             {onClose && (
@@ -76,8 +75,7 @@ export function DetailPanel({
       {hasTabs ? (
         <Tabs defaultValue={defaultTab || tabs[0].value} className="flex flex-col h-full">
           <div className="px-4 pt-4">
-            <div className="flex items-center justify-between">
-              <CardTitle>{title}</CardTitle>
+            <div className="flex items-center justify-end">
               <div className="flex items-center gap-2">
                 {actions}
                 {onClose && (

@@ -111,31 +111,22 @@ export function Header({
       
       {/* 左側コンテンツ */}
       <div className="flex items-center gap-4">
-        {/* サイドバー開閉ボタン */}
-        {onMenuToggle && (
+        {/* サイドバー開閉ボタン - サイドバーが折りたたまれている時のみ表示 */}
+        {onMenuToggle && sidebarState === "collapsed" && (
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={onMenuToggle}
             className="bg-black text-white rounded-full hover:bg-black/80 h-8 w-8 p-0"
           >
-            {sidebarState === "expanded" ? (
-              <ChevronLeft className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
+            <ChevronRight className="h-4 w-4" />
           </Button>
         )}
         
         {/* ヘッダータイトル */}
         {title && (
           <div className="flex items-center gap-2">
-            {/* 現在のページに対応するアイコンを表示 */}
-            {pageItem && (
-              <div className="flex items-center justify-center h-6 w-6">
-                {pageItem.icon}
-              </div>
-            )}
+            {/* タイトルの左にアイコンを表示 - leftContentから渡される */}
             <h1 className="text-xl font-semibold">{title}</h1>
           </div>
         )}
