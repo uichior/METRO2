@@ -4,7 +4,7 @@ import { useState } from "react"
 import { User, LogOut, Settings, Bell } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
-import { ComponentLabel } from "./component-label"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,7 +44,7 @@ export function UserProfile({ user = {
 
   return (
     <div className="flex items-center gap-2">
-      <ComponentLabel name="UserProfile" />
+
       
       {/* 通知ボタン */}
       <Popover>

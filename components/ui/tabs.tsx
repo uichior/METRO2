@@ -4,7 +4,7 @@ import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
 
 import { cn } from "@/lib/utils"
-import { ComponentLabel } from "@/components/common/component-label"
+
 
 const Tabs = TabsPrimitive.Root
 
@@ -30,7 +30,7 @@ const TabsListBase = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
 >(({ className, ...props }, ref) => (
   <div className="relative">
-    <ComponentLabel name="TabsListBase" position="top-left" />
+
     <TabsPrimitive.List
       ref={ref}
       className={cn(

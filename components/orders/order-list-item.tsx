@@ -56,8 +56,8 @@ export function OrderListItem({
   return (
     <Card 
       className={cn(
-        "transition-all hover:bg-accent/50 cursor-pointer",
-        isSelected && "border-l-4 border-l-primary"
+        "transition-all hover:bg-accent/50 cursor-pointer relative",
+        isSelected && "ring-2 ring-primary"
       )}
       onClick={() => onSelect(order)}
     >

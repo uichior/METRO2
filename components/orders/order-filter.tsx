@@ -3,13 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import { ChevronDown } from "lucide-react"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+import { FilterPanel, FilterSection } from "@/components/shared/filter-panel"
 
 interface OrderFilterProps {
   onFilterChange: (filter: { type: string; value: string }) => void
@@ -24,42 +18,42 @@ interface OrderFilterProps {
   }
 }
 
-export function FilterPanel({
+export function OrderFilterPanel({
   onFilterChange,
   activeFilters,
   orderCounts
 }: OrderFilterProps) {
   // ステータスフィルターの選択状態
   const [selectedStatus, setSelectedStatus] = useState<string>(activeFilters.status || 'すべて')
-  
-  // 折りたたみ状態の管理
-  const [statusOpen, setStatusOpen] = useState(true)
-  const [timeframeOpen, setTimeframeOpen] = useState(true)
-  const [amountOpen, setAmountOpen] = useState(true)
 
   // ステータスフィルターの変更ハンドラー
   const handleStatusChange = (status: string) => {
     setSelectedStatus(status)
     onFilterChange({ type: 'status', value: status })
   }
+  
+  // 納期フィルターの変更ハンドラー
+  const handleTimeframeChange = (timeframe: string) => {
+    onFilterChange({ type: 'timeframe', value: timeframe })
+  }
+  
+  // 金額フィルターの変更ハンドラー
+  const handleAmountChange = (amount: string) => {
+    onFilterChange({ type: 'amount', value: amount })
+  }
+  
+  // フィルターリセットハンドラー
+  const handleReset = () => {
+    onFilterChange({ type: 'status', value: 'すべて' })
+    onFilterChange({ type: 'timeframe', value: 'すべて' })
+    onFilterChange({ type: 'amount', value: 'すべて' })
+  }
 
   return (
-    <div className="space-y-6 p-6">
+    <FilterPanel title="フィルター" onReset={handleReset}>
       {/* ステータスフィルター */}
-      <Collapsible open={statusOpen} onOpenChange={setStatusOpen} className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium">ステータス</h3>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="p-0 h-8 w-8">
-              <ChevronDown className={cn(
-                "h-4 w-4 transition-transform",
-                statusOpen ? "transform rotate-180" : ""
-              )} />
-            </Button>
-          </CollapsibleTrigger>
-        </div>
-        <CollapsibleContent>
-          <div className="flex flex-col space-y-2 pt-2">
+      <FilterSection title="ステータス" defaultOpen={true}>
+        <div className="flex flex-col space-y-2">
           <Button
             variant={selectedStatus === 'すべて' ? 'secondary' : 'ghost'}
             className="justify-between h-auto py-2 px-3"
@@ -126,24 +120,11 @@ export function FilterPanel({
             </Badge>
           </Button>
           </div>
-        </CollapsibleContent>
-      </Collapsible>
+        </FilterSection>
       
-      {/* 納品期限フィルター */}
-      <Collapsible open={timeframeOpen} onOpenChange={setTimeframeOpen} className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium">納品期限</h3>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="p-0 h-8 w-8">
-              <ChevronDown className={cn(
-                "h-4 w-4 transition-transform",
-                timeframeOpen ? "transform rotate-180" : ""
-              )} />
-            </Button>
-          </CollapsibleTrigger>
-        </div>
-        <CollapsibleContent>
-          <div className="flex flex-col space-y-2 pt-2">
+      {/* 納期フィルター */}
+      <FilterSection title="納期" defaultOpen={true}>
+        <div className="flex flex-col space-y-2">
           <Button
             variant={activeFilters.timeframe === 'すべて' ? 'secondary' : 'ghost'}
             className="justify-start h-auto py-2 px-3"
@@ -176,24 +157,11 @@ export function FilterPanel({
             次月
           </Button>
           </div>
-        </CollapsibleContent>
-      </Collapsible>
+      </FilterSection>
       
       {/* 金額フィルター */}
-      <Collapsible open={amountOpen} onOpenChange={setAmountOpen} className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium">金額</h3>
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="p-0 h-8 w-8">
-              <ChevronDown className={cn(
-                "h-4 w-4 transition-transform",
-                amountOpen ? "transform rotate-180" : ""
-              )} />
-            </Button>
-          </CollapsibleTrigger>
-        </div>
-        <CollapsibleContent>
-          <div className="flex flex-col space-y-2 pt-2">
+      <FilterSection title="金額" defaultOpen={true}>
+        <div className="flex flex-col space-y-2">
           <Button
             variant={activeFilters.amount === 'すべて' ? 'secondary' : 'ghost'}
             className="justify-start h-auto py-2 px-3"
@@ -226,8 +194,7 @@ export function FilterPanel({
             500万円以上
           </Button>
           </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </div>
+      </FilterSection>
+    </FilterPanel>
   )
 }

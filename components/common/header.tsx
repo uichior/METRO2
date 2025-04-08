@@ -6,7 +6,7 @@ import { useSidebar } from "@/components/ui/sidebar"
 import { usePathname } from "next/navigation"
 import { getPageItemFromPath } from "@/lib/page-mapping"
 import { Button } from "@/components/ui/button"
-import { ComponentLabel } from "./component-label"
+
 import { UserProfile } from "./user-profile"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
@@ -107,17 +107,22 @@ export function Header({
       headerStyles[variant],
       className
     )}>
-      <ComponentLabel name="Header" />
+
       
       {/* 左側コンテンツ */}
       <div className="flex items-center gap-4">
         {/* サイドバー開閉ボタン */}
         {onMenuToggle && (
-          <Button variant="ghost" size="icon" onClick={onMenuToggle}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onMenuToggle}
+            className="bg-black text-white rounded-full hover:bg-black/80 h-8 w-8 p-0"
+          >
             {sidebarState === "expanded" ? (
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-4 w-4" />
             ) : (
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-4 w-4" />
             )}
           </Button>
         )}

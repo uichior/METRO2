@@ -13,8 +13,8 @@ import {
 } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
-import { MetroLogo, pageToMetroLine } from "./metro-logo"
-import { pageMapping, lineColors } from "@/lib/page-mapping"
+import { MetroLogo } from "./metro-logo"
+import { pageMapping } from "@/lib/page-mapping"
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -51,30 +51,20 @@ export function SidebarNavigation() {
     return pathname.startsWith(path)
   }
 
-  // 現在のページに基づいてメトロラインを決定
-  const getCurrentMetroLine = () => {
-    // パスの最初のセグメントを取得 (/dashboard -> dashboard)
-    const segment = pathname.split('/')[1] || 'dashboard'
-    return pageToMetroLine[segment] || 'marunouchi'
-  }
-
-  const currentLine = getCurrentMetroLine()
+  // カラーマッピングは後で実装するため、一時的に削除しています
 
   return (
     <Sidebar 
       variant="sidebar" 
       collapsible="icon" 
       className="border-r border-border text-black transition-all duration-300 ease-in-out"
-      style={{
-        backgroundColor: lineColors[currentLine],
-      }}
     >
       <div className={cn(
         "h-16 flex items-center border-b border-gray-800",
         isExpanded ? "justify-between px-6" : "justify-center"
       )}>
         <div className="flex items-center gap-2">
-          <MetroLogo line={currentLine} size="sm" color="black" />
+          <MetroLogo size="sm" color="black" />
           {isExpanded && (
             <span className="text-xl font-bold text-black">METRO</span>
           )}

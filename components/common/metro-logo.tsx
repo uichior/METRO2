@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils"
 
+// メトロラインの型定義
 export type MetroLine =
   | "hibiya" // 日比谷線
   | "yurakucho" // 有楽町線
@@ -12,7 +13,7 @@ export type MetroLine =
   | "namboku" // 南北線
 
 interface MetroLogoProps {
-  line: MetroLine
+  line?: MetroLine
   size?: "sm" | "md" | "lg"
   className?: string
   showLabel?: boolean
@@ -57,7 +58,7 @@ const lineNames: Record<MetroLine, string> = {
   namboku: "南北線",
 }
 
-export function MetroLogo({ line, size = "md", className, showLabel = false, color, textSize }: MetroLogoProps) {
+export function MetroLogo({ line = "marunouchi", size = "md", className, showLabel = false, color, textSize }: MetroLogoProps) {
   const sizeClasses = {
     sm: "w-6 h-6",
     md: "w-8 h-8",
@@ -113,24 +114,4 @@ export function MetroLogo({ line, size = "md", className, showLabel = false, col
   )
 }
 
-// ページ名とメトロ路線のマッピング
-export const pageToMetroLine: Record<string, MetroLine> = {
-  // メイン
-  dashboard: "marunouchi", // 丸ノ内線（レッド）
-  
-  // 業務系
-  orders: "marunouchi", // 丸ノ内線（レッド）- 受注
-  delivery: "ginza", // 銀座線（オレンジ）- 納品
-  billing: "hibiya", // 日比谷線（シルバー）- 請求
-  arrangement: "chiyoda", // 千代田線（グリーン）- 手配
-  purchasing: "tozai", // 東西線（スカイブルー）- 仕入
-  payment: "yurakucho", // 有楽町線（ゴールド）- 支払
-  inventory: "namboku", // 南北線（エメラルド）- 在庫
-  budget: "hanzomon", // 半蔵門線（パープル）- 予算
-  dailyreport: "fukutoshin", // 副都心線（ブラウン）- 日報
-  
-  // その他
-  settings: "marunouchi", // 設定
-  master: "marunouchi", // マスタ
-  profile: "marunouchi" // プロフィール
-}
+// ページ名とメトロ路線のマッピングはlib/page-mapping.tsで定義

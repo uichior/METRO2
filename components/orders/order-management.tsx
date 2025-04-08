@@ -6,7 +6,7 @@ import { OrderListItem } from "./order-list-item"
 import { OrderDetail } from "./order-detail"
 import { Order } from "./types"
 import { Plus, Download, Trash } from "lucide-react"
-import { FilterPanel } from "./order-filter"
+import { OrderFilterPanel } from "./order-filter"
 
 // サンプル受注データ
 const sampleOrders: Order[] = [
@@ -591,7 +591,7 @@ export function OrderManagement() {
       onExport={handleExport}
       onDelete={handleDelete}
       filterPanel={
-        <FilterPanel 
+        <OrderFilterPanel 
           onFilterChange={handleFilterChange}
           activeFilters={activeFilters}
           orderCounts={orderCounts}
